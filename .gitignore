@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.env
+.venv/
+venv/
+ENV/
+*.log
+
+# Build / empaquetado (PyInstaller, etc.)
+build/
+dist/
+*.spec
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Ejecutables / binarios grandes
+*.exe
+*.dll
+*.pdb
+
+# Cachés comunes
+.mypy_cache/
+.pytest_cache/
+.cache/
+
+# Imágenes generadas / temporales (ajusta si necesitas versionarlas)
+*.png
+*.jpg
+*.jpeg
+*.bmp
+
+# Si usas Qt Designer u otros, ignora generados si aplica
+# (ajusta a tu flujo)

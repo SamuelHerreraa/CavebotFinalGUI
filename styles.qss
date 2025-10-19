@@ -1,0 +1,64 @@
+/* Tema oscuro básico */
+* {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 11pt;
+}
+
+QMainWindow, QWidget {
+  background: #1c1f26;
+  color: #e6e6e6;
+}
+
+QPushButton {
+  background: #2a2f3a;
+  border: 1px solid #3a4150;
+  border-radius: 6px;
+  padding: 6px 12px;
+}
+QPushButton:hover { background: #333a48; }
+QPushButton:pressed { background: #1f2430; }
+
+QTabWidget::pane {
+  border: 1px solid #3a4150;
+  border-radius: 6px;
+}
+QTabBar::tab {
+  background: #242a33;
+  border: 1px solid #3a4150;
+  padding: 6px 12px;
+  margin-right: 2px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+QTabBar::tab:selected { background: #2c3340; }
+
+QTextEdit, QPlainTextEdit, QLineEdit {
+  background: #12151c;
+  border: 1px solid #3a4150;
+  border-radius: 6px;
+  color: #e6e6e6;
+}
+
+QComboBox, QSpinBox, QDoubleSpinBox {
+  background: #12151c;
+  border: 1px solid #3a4150;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+QGroupBox {
+  border: 1px solid #3a4150;
+  border-radius: 6px;
+  margin-top: 12px;
+}
+QGroupBox::title {
+  subcontrol-origin: margin;
+  left: 10px;
+  padding: 0 3px;
+}
+/* Resalte de selección en tablas (verde) */
+QTableView::item:selected {
+  background: #92ffbfff;
+  color: #000;
+}
+

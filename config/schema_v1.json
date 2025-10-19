@@ -1,0 +1,4 @@
+{
+  "version": 1,
+  "required_keys": ["poll_ms", "battlelist", "targeting", "healing", "exit_on_pot", "threads"]
+}

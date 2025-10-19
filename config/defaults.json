@@ -1,0 +1,34 @@
+{
+  "name": "defaults",
+  "poll_ms": 250,
+  "battlelist": {
+    "rect": [1569, 79, 1712, 300],
+    "run_min_samples": 10,
+    "row_scan_step": 2,
+    "red_sample_step": 2
+  },
+  "targeting": {
+    "hk_target": "9",
+    "retry_sleep": 0.25
+  },
+  "healing": {
+    "hk_high": "f3",
+    "hk_low": "f5",
+    "hk_mana": "f6"
+  },
+  "exit_on_pot": {
+    "enabled": true,
+    "check_mana": true,
+    "mana_img": "img/smp.png",
+    "check_health": false,
+    "health_img": "img/shp.png"
+  },
+  "threads": {
+    "healing_high": true,
+    "healing_low": true,
+    "healing_mana": true,
+    "food": true,
+    "antiparalyze": true,
+    "cavebot": true
+  }
+}

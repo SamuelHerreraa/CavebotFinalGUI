@@ -1,0 +1,245 @@
+{
+  "PARALYZEBAR_RECT_X1Y1X2Y2": [
+    1551,
+    341,
+    1667,
+    459
+  ],
+  "AMULET_REGION_X1Y1X2Y2": [
+    1545,
+    383,
+    1868,
+    523
+  ],
+  "RING_REGION_X1Y1X2Y2": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "BATTLELIST_RECT_X1Y1X2Y2": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "EXIT_REGION_HEALTH_X1Y1X2Y2": [
+    1602,
+    471,
+    1876,
+    632
+  ],
+  "EXIT_REGION_MANA_X1Y1X2Y2": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "EXIT_REGION_EXIT_X1Y1X2Y2": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "ZOOM_RECT_X1Y1X2Y2": [
+    1584,
+    491,
+    1842,
+    615
+  ],
+  "PLAYER_CENTER_MINIMAP": [
+    1807,
+    82
+  ],
+  "PLAYER_CENTER_SCREEN": [
+    862,
+    453
+  ],
+  "HIGH_HEAL_POS": [
+    1845,
+    308
+  ],
+  "HIGH_HEAL_RGB": [
+    218,
+    79,
+    79
+  ],
+  "LOW_HEAL_POS": [
+    1811,
+    307
+  ],
+  "LOW_HEAL_RGB": [
+    191,
+    64,
+    64
+  ],
+  "MANA_POS": [
+    1840,
+    322
+  ],
+  "MANA_RGB": [
+    101,
+    98,
+    239
+  ],
+  "BOOST_COLOR_POS": [
+    1831,
+    322
+  ],
+  "BOOST_COLOR_RGB": [
+    101,
+    98,
+    239
+  ],
+  "CREATURE_XY_START": [
+    1594,
+    103
+  ],
+  "CREATURE_DEAD_CHECK_POS": [
+    1626,
+    103
+  ],
+  "CREATURE_ROW_DY": 23,
+  "HK_FOOD": "1",
+  "HK_HIGH_HEALING": "2",
+  "HK_LOW_HEALING": "3",
+  "HK_MANA_POTION": "4",
+  "HK_EXORI_GRAN": "",
+  "HK_EXORI": "",
+  "HK_EXORI_MAS": "",
+  "HK_EXORI_HUR": "",
+  "HK_EXORI_ICO": "",
+  "HK_EXETARES": "",
+  "HK_BOOST": "",
+  "HK_EXETAAMPRES": "",
+  "HK_ROPE": "",
+  "HK_SHOVEL": "",
+  "HK_AMULET": "",
+  "HK_RING": "",
+  "HK_LOOT": "",
+  "HK_TARGET": "",
+  "HK_REMOVE_PARALYZE": "5",
+  "ROUTE_TABS": {
+    "hunt": {
+      "ROUTE": [
+        "wp1",
+        "wp2",
+        "wp3",
+        "wp4"
+      ],
+      "ROUTE_ACTIONS": [
+        "none",
+        "none",
+        "none",
+        "none"
+      ],
+      "ROUTE_LABELS": [
+        "",
+        "",
+        "",
+        ""
+      ],
+      "ROUTE_GOTO": [
+        "",
+        "",
+        "",
+        ""
+      ]
+    },
+    "refill": {
+      "ROUTE": [
+        "wp1",
+        "wp2",
+        "wp3"
+      ],
+      "ROUTE_ACTIONS": [
+        "none",
+        "none",
+        "goto"
+      ],
+      "ROUTE_LABELS": [
+        "",
+        "",
+        "goto,123:here"
+      ],
+      "ROUTE_GOTO": [
+        "",
+        "",
+        "123:here"
+      ]
+    },
+    "123": {
+      "ROUTE": [
+        "wp7",
+        "wp8",
+        "wp9"
+      ],
+      "ROUTE_ACTIONS": [
+        "none",
+        "none",
+        "none"
+      ],
+      "ROUTE_LABELS": [
+        "",
+        "here",
+        ""
+      ],
+      "ROUTE_GOTO": [
+        "",
+        "",
+        ""
+      ]
+    }
+  },
+  "ROUTE": [
+    "wp1",
+    "wp2",
+    "wp3",
+    "wp4"
+  ],
+  "ROUTE_ACTIONS": [
+    "none",
+    "none",
+    "none",
+    "none"
+  ],
+  "ROUTE_LABELS": [
+    "",
+    "",
+    "",
+    ""
+  ],
+  "ROUTE_GOTO": [
+    "",
+    "",
+    "",
+    ""
+  ],
+  "ROUTE_ACTIVE_TAB": "hunt",
+  "WAIT_AFTER_ARRIVAL_S": 0.0,
+  "WAIT_BEFORE_NEXT_WP_S": 0.0,
+  "LURE_MAX_TRIES": 10,
+  "LURE_PAUSE_SEC": 1.5,
+  "LURE_RESUME_SEC": 1.5,
+  "MAX_TRIES_PER_WP": 30,
+  "SLEEP_AFTER_CLICK": 0.05,
+  "ATTACK_UNTIL_ARRIVED_MODE": "x",
+  "LOOT_AFTER_KILL_MODE": "x",
+  "IGNORE_CREATURES_AT_MOST": "",
+  "exit_when_no_pots": "",
+  "CHECK_MANA_ON": "",
+  "CHECK_HEALTH_ON": "",
+  "dropvials": "",
+  "POTION_CHECK_MANA_IMG": "mp.png",
+  "POTION_CHECK_HEALTH_IMG": "hp.png",
+  "USE_EXORI_MIN_PLUS": "",
+  "USE_EXORIGRAN_MIN_PLUS": "",
+  "USE_EXORIMAS_MIN_PLUS": "",
+  "USE_EXORIHUR_MIN_PLUS": "",
+  "USE_EXORICO_MIN_PLUS": "",
+  "SPELL_ROTATION_START_DELAY": 1.5,
+  "SPELL_ROTATION_COOLDOWN": 2.0,
+  "SUPPORT_ROTATION": [],
+  "SUPPORT_COOLDOWN": 2.0,
+  "SUPPORT_START_DELAY": 1.0
+}

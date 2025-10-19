@@ -1,0 +1,6 @@
+{
+  "name": "example_aggressive",
+  "battlelist": { "run_min_samples": 6, "row_scan_step": 1, "red_sample_step": 1 },
+  "targeting": { "hk_target": "9", "retry_sleep": 0.15 },
+  "threads": { "antiparalyze": true, "cavebot": true }
+}

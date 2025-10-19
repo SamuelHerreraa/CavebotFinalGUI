@@ -1,0 +1,277 @@
+{
+  "PARALYZEBAR_RECT_X1Y1X2Y2": [
+    1746,
+    284,
+    1864,
+    302
+  ],
+  "AMULET_REGION_X1Y1X2Y2": [
+    1743,
+    145,
+    1801,
+    200
+  ],
+  "RING_REGION_X1Y1X2Y2": [
+    1744,
+    226,
+    1797,
+    270
+  ],
+  "BATTLELIST_RECT_X1Y1X2Y2": [
+    1566,
+    77,
+    1604,
+    112
+  ],
+  "EXIT_REGION_HEALTH_X1Y1X2Y2": [
+    915,
+    841,
+    952,
+    881
+  ],
+  "EXIT_REGION_MANA_X1Y1X2Y2": [
+    877,
+    840,
+    918,
+    880
+  ],
+  "EXIT_REGION_EXIT_X1Y1X2Y2": [
+    1078,
+    567,
+    1145,
+    602
+  ],
+  "ZOOM_RECT_X1Y1X2Y2": [
+    1865,
+    75,
+    1898,
+    125
+  ],
+  "PLAYER_CENTER_MINIMAP": [
+    1807,
+    82
+  ],
+  "PLAYER_CENTER_SCREEN": [
+    872,
+    455
+  ],
+  "HIGH_HEAL_POS": [
+    1846,
+    309
+  ],
+  "HIGH_HEAL_RGB": [
+    240,
+    97,
+    97
+  ],
+  "LOW_HEAL_POS": [
+    1820,
+    309
+  ],
+  "LOW_HEAL_RGB": [
+    240,
+    97,
+    97
+  ],
+  "MANA_POS": [
+    1837,
+    323
+  ],
+  "MANA_RGB": [
+    115,
+    112,
+    254
+  ],
+  "BOOST_COLOR_POS": [
+    1825,
+    322
+  ],
+  "BOOST_COLOR_RGB": [
+    101,
+    98,
+    239
+  ],
+  "CREATURE_XY_START": [
+    1594,
+    104
+  ],
+  "CREATURE_DEAD_CHECK_POS": [
+    1620,
+    104
+  ],
+  "CREATURE_ROW_DY": 23,
+  "HK_FOOD": "5",
+  "HK_HIGH_HEALING": "f3",
+  "HK_LOW_HEALING": "f5",
+  "HK_MANA_POTION": "f6",
+  "HK_EXORI_GRAN": "1",
+  "HK_EXORI": "2",
+  "HK_EXORI_MAS": "3",
+  "HK_EXORI_HUR": "",
+  "HK_EXORI_ICO": "",
+  "HK_EXETARES": "f1",
+  "HK_BOOST": "",
+  "HK_EXETAAMPRES": "",
+  "HK_ROPE": "",
+  "HK_SHOVEL": "",
+  "HK_AMULET": "8",
+  "HK_RING": "4",
+  "HK_LOOT": "add",
+  "HK_TARGET": "9",
+  "HK_REMOVE_PARALYZE": "",
+  "ROUTE_TABS": {
+    "hunt": {
+      "ROUTE": [
+        "wp1",
+        "wp2",
+        "wp3",
+        "wp13",
+        "wp4",
+        "wp5",
+        "wp6",
+        "wp7",
+        "wp8",
+        "wp9",
+        "wp10"
+      ],
+      "ROUTE_ACTIONS": [
+        "none",
+        "lure",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none",
+        "none"
+      ],
+      "ROUTE_LABELS": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "ROUTE_GOTO": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ]
+    }
+  },
+  "ROUTE": [
+    "wp1",
+    "wp2",
+    "wp3",
+    "wp13",
+    "wp4",
+    "wp5",
+    "wp6",
+    "wp7",
+    "wp8",
+    "wp9",
+    "wp10"
+  ],
+  "ROUTE_ACTIONS": [
+    "none",
+    "lure",
+    "none",
+    "none",
+    "none",
+    "none",
+    "none",
+    "none",
+    "none",
+    "none",
+    "none"
+  ],
+  "ROUTE_LABELS": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
+  "ROUTE_GOTO": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
+  "ROUTE_ACTIVE_TAB": "hunt",
+  "WAIT_AFTER_ARRIVAL_S": 0.0,
+  "WAIT_BEFORE_NEXT_WP_S": 1.0,
+  "LURE_MAX_TRIES": 10,
+  "LURE_PAUSE_SEC": 1.5,
+  "LURE_RESUME_SEC": 1.5,
+  "MAX_TRIES_PER_WP": 30,
+  "SLEEP_AFTER_CLICK": 0.05,
+  "ATTACK_UNTIL_ARRIVED_MODE": "x",
+  "LOOT_AFTER_KILL_MODE": "x",
+  "IGNORE_CREATURES_AT_MOST": "1",
+  "exit_when_no_pots": "",
+  "CHECK_MANA_ON": "",
+  "CHECK_HEALTH_ON": "",
+  "dropvials": "x",
+  "POTION_CHECK_MANA_IMG": "smp.png",
+  "POTION_CHECK_HEALTH_IMG": "hp.png",
+  "USE_EXORI_MIN_PLUS": "1+",
+  "USE_EXORIGRAN_MIN_PLUS": "1+",
+  "USE_EXORIMAS_MIN_PLUS": "1+",
+  "USE_EXORIHUR_MIN_PLUS": "1+",
+  "USE_EXORICO_MIN_PLUS": "1+",
+  "SPELL_ROTATION_START_DELAY": 1.5,
+  "SPELL_ROTATION_COOLDOWN": 2.0,
+  "SUPPORT_ROTATION": [
+    "res"
+  ],
+  "SUPPORT_COOLDOWN": 2.0,
+  "SUPPORT_START_DELAY": 1.0,
+  "CREATURE_DEAD_CHECK_RGB": [
+    73,
+    73,
+    73
+  ],
+  "wait_after_arrival_s": 1.0,
+  "wait_before_next_wp_s": 1.0,
+  "lure_max_tries": 10,
+  "lure_pause_sec": 1.5,
+  "lure_resume_sec": 1.5,
+  "max_tries_per_wp": 30,
+  "sleep_after_click": 0.05,
+  "ROUTE_START_TAB": "",
+  "ROUTE_START_WP_INDEX": 0,
+  "ROUTE_ATTACH": {
+    "tab": "hunt",
+    "index": 0
+  }
+}
