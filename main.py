@@ -59,6 +59,11 @@ LURE_PAUSE_KEY   = "esc"
 LURE_PAUSE_SEC   = 1.5
 LURE_RESUME_SEC  = 1.5
 
+# ===== Wallpaper Kill-Switch =====
+WALLPAPER_IMG_PATH   = "img/wallpaper.png"   # cámbialo si tu archivo tiene otra extensión
+WALLPAPER_CONFIDENCE = 0.85
+WALLPAPER_POLL_SLEEP = 0.50
+
 # --- Food / Auto-Eat ---
 HK_FOOD = "5"
 EAT_EVERY_S       = 180.0
@@ -87,6 +92,15 @@ HEAL_TOLERANCE = 90
 POTION_COOLDOWN_S      = 1.0
 HIGH_HEAL_MIN_INTERVAL = 0.45
 HEAL_POLL_SLEEP        = 0.03
+
+# =============== TRAINING ML (mana full -> lanzar spell) ===============
+TRAINING_ML_ENABLED      = False          # lo prenderás desde Flags / runtime_cfg
+TRAINING_ML_HOTKEY       = "6"            # la tecla del spell para gastar mana
+TRAINING_ML_POS          = (1001, 500)    # X, Y  (ejemplo)
+TRAINING_ML_RGB          = (195, 150, 125)# R, G, B (ejemplo)
+TRAINING_ML_TOLERANCE    = 90             # tolerancia de color (0-60)
+TRAINING_ML_COOLDOWN_S   = 1.0          # antispam para no castear de más
+TRAINING_ML_POLL_SLEEP   = 0.500           # frecuencia de chequeo del pixel
 
 # =================== ROTACIÓN DE ATAQUE ====================
 HK_EXORI_GRAN = "1"
@@ -147,6 +161,14 @@ ATTEMPT_LOOP_IDLE_SLEEP  = 0.05
 SKIP_IF_NOT_VISIBLE    = "x"
 SKIP_NOT_VISIBLE_AFTER = 3
 
+
+# =================== PELAR ===========
+PELAR_ENABLED     = ""
+HK_PELAR          = ""
+PELAR_SQM_SIZE    = 55
+PELAR_MODE        = "after_kill"   # NUEVO: "after_kill" | "post_clear"
+
+
 # =================== ACCIONES rope/shovel/stairs ===========
 HK_ROPE = "f10"
 ROPE_ATTEMPTS = 1
@@ -177,7 +199,7 @@ RING_CONFIDENCE = 0.87
 
 # ========================= LOOT ============================
 HK_LOOT     = "add"
-LOOT_REPEAT = 1
+LOOT_REPEAT = 2
 LOOT_DELAY  = 0.18
 
 # ===================== CREATURE CHECK ======================
@@ -208,6 +230,12 @@ TARGET_MIN_INTERVAL      = 0.6
 TARGET_NEED_NORED_STREAK = 3
 TARGET_MAX_BURST         = 3
 TARGET_BACKOFF_S         = 1.0
+
+# --- Attack specific creature (modulador del "pelear en ruta") ---
+ATTACK_SPECIFIC_CREATURE_ENABLED = ""     # "x"=ON, ""=OFF
+SPECIFIC_CREATURE_REGION_X1Y1X2Y2 = ""    # (x1, y1, x2, y2) o "" si no definido
+ATTACK_SPECIFIC_CREATURES = []            # lista de filenames (./creatures/*.png)
+ATTACK_SPECIFIC_CONFIDENCE = 0.85         # float
 
 # ================= EXIT-on-POT =============================
 exit_when_no_pots       = "x"
@@ -469,6 +497,7 @@ from functions.function_zoom import do_zoom_click
 from functions.function_food import run_food_worker
 from functions.function_dropvials import drop_vials
 from antiparalyze import run_antiparalyze
+from functions.function_pelar import do_pelar
 
 pg.FAILSAFE = False
 pg.PAUSE = 0.0
@@ -727,6 +756,67 @@ def _healing_mana_worker():
                     _last_potion_ts = now
         time.sleep(HEAL_POLL_SLEEP)
 
+def _training_ml_worker():
+    """
+    Dispara TRAINING_ML_HOTKEY cuando el pixel en TRAINING_ML_POS
+    coincide con TRAINING_ML_RGB (± TRAINING_ML_TOLERANCE).
+    """
+    last_cast = 0.0
+    while not _STOP_EVENT.is_set():
+        # Solo corre cuando Tibia está activo y no hay pausa dura
+        if is_hard_paused() or not _is_tibia_active():
+            time.sleep(NOT_ACTIVE_SLEEP)
+            continue
+
+        # Si está desactivado o sin hotkey, dormimos y seguimos
+        if not TRAINING_ML_ENABLED or not TRAINING_ML_HOTKEY:
+            time.sleep(0.25)
+            continue
+
+        # Leer el pixel y comparar con tolerancia
+        col = _get_pixel_rgb(TRAINING_ML_POS[0], TRAINING_ML_POS[1])
+        if _color_close(col, TRAINING_ML_RGB, TRAINING_ML_TOLERANCE):
+            now = time.monotonic()
+            if (now - last_cast) >= float(TRAINING_ML_COOLDOWN_S):
+                keyboard.press_and_release(TRAINING_ML_HOTKEY)
+                print(f"[TrainingML] Mana full detectado en {TRAINING_ML_POS} rgb={col} → HK='{TRAINING_ML_HOTKEY}'")
+                last_cast = now
+
+        time.sleep(TRAINING_ML_POLL_SLEEP)
+
+def run_wallpaper_watcher():
+    """
+    Kill-switch: si la imagen 'wallpaper' aparece en la pantalla, detiene el script.
+    - Busca a pantalla completa con el 'confidence' configurado.
+    - Solo actúa si la ventana activa es Tibia (como el resto del bot).
+    """
+    last_log = 0.0
+    while not _STOP_EVENT.is_set():
+        try:
+            if is_hard_paused() or not _is_tibia_active():
+                time.sleep(NOT_ACTIVE_SLEEP)
+                continue
+
+            # Buscar 'wallpaper' a pantalla completa
+            found = pg.locateOnScreen(WALLPAPER_IMG_PATH, confidence=WALLPAPER_CONFIDENCE)
+            if found is not None:
+                print(f"[KillSwitch] '{WALLPAPER_IMG_PATH}' detectado → solicitando STOP.")
+                _request_stop()
+                break
+
+            # log cada cierto tiempo para debug suave (opcional)
+            now = time.monotonic()
+            if now - last_log >= 10.0:
+                print("[KillSwitch] wallpaper no visible (vigilando).")
+                last_log = now
+
+        except Exception as e:
+            # No queremos que un fallo en vision pare el bot
+            print(f"[KillSwitch] Error buscando wallpaper: {e}")
+
+        time.sleep(WALLPAPER_POLL_SLEEP)
+
+
 # ========================= SUPPORT =========================
 def _image_visible_in_rect(img_path, rect_x1y1x2y2, confidence=0.85) -> bool:
     try:
@@ -735,6 +825,108 @@ def _image_visible_in_rect(img_path, rect_x1y1x2y2, confidence=0.85) -> bool:
         return box is not None
     except Exception:
         return False
+
+def _specific_filter_active() -> bool:
+    """
+    ON solo si:
+      - toggle maestro "x"
+      - región válida (tupla/lista de 4 ints con x2>x1, y2>y1)
+      - al menos una imagen seleccionada
+    """
+    if str(globals().get("ATTACK_SPECIFIC_CREATURE_ENABLED", "")).lower() != "x":
+        return False
+    region = globals().get("SPECIFIC_CREATURE_REGION_X1Y1X2Y2", "")
+    names  = globals().get("ATTACK_SPECIFIC_CREATURES", [])
+    if not (isinstance(region, (tuple, list)) and len(region) == 4):
+        return False
+    x1, y1, x2, y2 = region
+    if not (isinstance(x1, int) and isinstance(y1, int) and isinstance(x2, int) and isinstance(y2, int)):
+        return False
+    if not (x2 > x1 and y2 > y1):
+        return False
+    return bool(names)
+
+def _specific_creature_visible_in_region() -> bool:
+    """
+    Busca las imágenes seleccionadas dentro de la región indicada.
+    Retorna True si encuentra al menos una.
+    """
+    try:
+        names = list(globals().get("ATTACK_SPECIFIC_CREATURES", []) or [])
+        conf  = float(str(globals().get("ATTACK_SPECIFIC_CONFIDENCE", "0.85")) or "0.85")
+    except Exception:
+        names, conf = [], 0.85
+
+    region_xyxy = globals().get("SPECIFIC_CREATURE_REGION_X1Y1X2Y2", "")
+    if not (isinstance(region_xyxy, (tuple, list)) and len(region_xyxy) == 4):
+        return False
+
+    x1, y1, x2, y2 = region_xyxy
+    region = _rect_to_region_xywh(x1, y1, x2, y2)
+
+    for fname in names:
+        path = f"./creatures/{fname}"
+        try:
+            box = pg.locateOnScreen(path, region=region, confidence=conf)
+            if box is not None:
+                print(f"[SpecificRoute] Detectado: {fname} en región {region_xyxy} (conf={conf})")
+                return True
+        except Exception as e:
+            # Silencioso para no spam; podrías agregar un debug si quieres
+            pass
+    return False
+
+def _specific_click_target_once() -> bool:
+    """
+    En modo ATTACK_SPECIFIC_CREATURE_ENABLED:
+    - Busca la primera criatura (de ATTACK_SPECIFIC_CREATURES) en la región SPECIFIC_CREATURE_REGION_X1Y1X2Y2.
+    - Si la encuentra: click al centro y luego mueve el mouse al PLAYER_CENTER_SCREEN.
+    - Devuelve True si clickeó, False si no hubo coincidencia.
+    """
+    if not _specific_filter_active():
+        return False
+    try:
+        names = list(globals().get("ATTACK_SPECIFIC_CREATURES", []) or [])
+        conf  = float(str(globals().get("ATTACK_SPECIFIC_CONFIDENCE", "0.85")) or "0.85")
+    except Exception:
+        names, conf = [], 0.85
+
+    region_xyxy = globals().get("SPECIFIC_CREATURE_REGION_X1Y1X2Y2", "")
+    if not (isinstance(region_xyxy, (tuple, list)) and len(region_xyxy) == 4):
+        return False
+
+    x1, y1, x2, y2 = region_xyxy
+    region = _rect_to_region_xywh(x1, y1, x2, y2)
+
+    if is_paused() or not _is_tibia_active():
+        return False
+
+    for fname in names:
+        path = f"./creatures/{fname}"
+        try:
+            pt = pg.locateCenterOnScreen(path, region=region, confidence=conf)
+        except Exception:
+            pt = None
+        if pt and not is_paused() and _is_tibia_active():
+            try:
+                pg.moveTo(pt.x, pt.y, duration=0.02)
+                pg.click()
+                # mover inmediatamente el mouse al centro del jugador
+                pg.moveTo(PLAYER_CENTER_SCREEN[0], PLAYER_CENTER_SCREEN[1], duration=0.02)
+                print(f"[Target] (Specific) Click en '{fname}' en ({pt.x}, {pt.y}) y volver al centro {PLAYER_CENTER_SCREEN}")
+                return True
+            except Exception:
+                pass
+    return False
+
+def _specific_should_abort_engage() -> bool:
+    """
+    En modo ATTACK_SPECIFIC_CREATURE_ENABLED, si ya NO hay ninguna
+    criatura válida visible en la región, conviene salir del loop
+    de combate para no quedarnos ‘colgados’.
+    """
+    return _specific_filter_active() and not _specific_creature_visible_in_region()
+
 
 def _boost_pixel_ok():
     col = _get_pixel_rgb(BOOST_COLOR_POS[0], BOOST_COLOR_POS[1])
@@ -925,12 +1117,15 @@ def engage_until_no_creatures():
                 if HK_LOOT:
                     print("[Loot] Kill detectada (conteo ↓) → looteando…")
                     _do_loot()
+                    _pelar_maybe("after_kill")   # <--- AÑADE PHASE
                     did_kill_loot_this_tick = True
                     deadline = time.monotonic() + LOOT_BETWEEN_KILLS_DELAY
                     while time.monotonic() < deadline:
                         if is_paused() or not _is_tibia_active(): break
                         time.sleep(0.02)
-                if HK_TARGET:
+                if _specific_filter_active():
+                    _specific_click_target_once()
+                elif HK_TARGET:
                     keyboard.press_and_release(HK_TARGET)
                     print(f"[Target] Retarget por conteo: {prev_creatures}→{creatures_now} (HK='{HK_TARGET}')")
 
@@ -943,6 +1138,15 @@ def engage_until_no_creatures():
                 if HK_LOOT and not did_kill_loot_this_tick:
                     _do_loot()
                 return
+            
+        # --- Early exit en modo SPECIFIC cuando ya no hay target válido ---
+        if _specific_should_abort_engage():
+            print("[Specific] No hay criaturas válidas en región → salir de combate.")
+            # Si quieres loot corto aquí cuando no hay kill-delta, descomenta:
+            # if HK_LOOT and not did_kill_loot_this_tick:
+            #     _do_loot()
+            return
+
 
         now = time.monotonic()
         if now - last_log >= CREATURE_LOG_COOLDOWN:
@@ -962,9 +1166,12 @@ def engage_until_no_creatures():
 
         # -------- Targeting: SOLO cuando no hay franja roja --------
         red_now = battlelist_has_red_stripe()
-        if not red_now and HK_TARGET and (now - last_target_ts) >= TARGET_RETRY_SLEEP:
-            keyboard.press_and_release(HK_TARGET)
-            print(f"[Target] Insistiendo HK_TARGET='{HK_TARGET}' (cond: no red)")
+        if not red_now and (now - last_target_ts) >= TARGET_RETRY_SLEEP:
+            if _specific_filter_active():
+                _specific_click_target_once()
+            elif HK_TARGET:
+                keyboard.press_and_release(HK_TARGET)
+                print(f"[Target] Insistiendo HK_TARGET='{HK_TARGET}' (cond: no red)")
             last_target_ts = now
 
         # -------- ATAQUE: start delay + cooldown, con diagnósticos --------
@@ -997,6 +1204,7 @@ def engage_until_no_creatures():
             if HK_LOOT:
                 print("[Loot] Criatura eliminada (franja OFF) → looteando…")
                 _do_loot()
+                _pelar_maybe("after_kill")   # <--- NUEVO
                 deadline = time.monotonic() + LOOT_BETWEEN_KILLS_DELAY
                 while time.monotonic() < deadline:
                     if is_paused() or not _is_tibia_active(): break
@@ -1066,9 +1274,12 @@ def engage_until_no_creatures_strict():
         red_now = battlelist_has_red_stripe()
 
         # Retarget agresivo cuando no hay franja
-        if not red_now and HK_TARGET and (now - last_target_ts) >= TARGET_RETRY_SLEEP:
-            keyboard.press_and_release(HK_TARGET)
-            print(f"[Target] (STRICT) HK_TARGET='{HK_TARGET}'")
+        if not red_now and (now - last_target_ts) >= TARGET_RETRY_SLEEP:
+            if _specific_filter_active():
+                _specific_click_target_once()
+            elif HK_TARGET:
+                keyboard.press_and_release(HK_TARGET)
+                print(f"[Target] (STRICT) HK_TARGET='{HK_TARGET}'")
             last_target_ts = now
 
         # Rotación de spells (misma idea que tuya)
@@ -1251,6 +1462,55 @@ def _do_loot():
         return
     do_loot(HK_LOOT, LOOT_REPEAT, LOOT_DELAY)
 
+
+# ===================== PELAR =======================
+def _pelar_maybe(phase: str):
+    """
+    Ejecuta 'pelar' según:
+      - PELAR_ENABLED: ON/OFF
+      - PELAR_MODE:
+          * "after_kill": solo si phase == "after_kill"
+          * "post_clear": solo si phase == "post_clear"
+    """
+    try:
+        if str(PELAR_ENABLED).lower() != "x":
+            # no activado → salir
+            print("[Pelar] skip → PELAR_ENABLED=OFF")
+            return
+
+        mode = str(globals().get("PELAR_MODE", "after_kill")).strip().lower()
+        if mode not in ("after_kill", "post_clear"):
+            mode = "after_kill"
+
+        # ¿corresponde esta fase para el modo actual?
+        if mode == "after_kill" and phase != "after_kill":
+            return
+        if mode == "post_clear" and phase != "post_clear":
+            return
+
+        if not HK_PELAR:
+            print("[Pelar] skip → HK_PELAR vacío")
+            return
+
+        did = do_pelar(
+            hotkey=HK_PELAR,
+            center_xy=PLAYER_CENTER_SCREEN,
+            sqm_size=int(PELAR_SQM_SIZE),
+            is_active=_is_tibia_active,
+            is_paused=is_paused,
+            stop_event=_STOP_EVENT,
+            press_delay_s=0.03,
+            click_delay_s=0.04,
+            between_sqm_sleep_s=1.0,
+            order_mode="shuffle",  # si tu function_pelar ya soporta esto
+            jitter_s=0.02,
+        )
+        if did:
+            time.sleep(0.05)  # ventana para animaciones
+    except Exception as e:
+        print(f"[Pelar] fallo en _pelar_maybe: {e}")
+
+
 # ======================= Recentrado estricto ========================
 def _recenter_strict_before_action(target_img, search_region, region_center,
                                    strict_tol_px=2, max_tries=8):
@@ -1340,6 +1600,14 @@ def main():
     Thread(target=_healing_high_worker, daemon=True).start()
     Thread(target=_healing_low_worker,  daemon=True).start()
     Thread(target=_healing_mana_worker, daemon=True).start()
+
+    # === Training ML thread ===
+    Thread(target=_training_ml_worker, daemon=True).start()
+
+    # === Wallpaper Kill-Switch thread ===
+    Thread(target=run_wallpaper_watcher, daemon=True).start()
+
+
 
     # === Food thread ===
     Thread(
@@ -1524,13 +1792,30 @@ def main():
 
                 enemies_now = battlelist_maybe_has_enemies()
                 if "x" not in str(ATTACK_UNTIL_ARRIVED_MODE).lower():
-                    if enemies_now:
-                        print("[Cavebot] Enemigos detectados en ruta. Combatiendo…")
-                        engage_until_no_creatures()
-                        if HK_LOOT:
-                            print("[Loot] Ejecutando loot…")
-                            _do_loot()
-                        time.sleep(0.10)
+                    # Pelear en ruta = ON
+                    if _specific_filter_active():
+                        # Solo pelear si aparece una criatura específica en la región
+                        if _specific_creature_visible_in_region():
+                            print("[Cavebot] (Specific) Criatura específica detectada en ruta → combate…")
+                            engage_until_no_creatures()
+                            if HK_LOOT:
+                                print("[Loot] Ejecutando loot…")
+                                _do_loot()
+                                _pelar_maybe("after_kill")
+                            time.sleep(0.10)
+                        else:
+                            # No hay criatura específica visible → no peleamos en ruta esta vez
+                            pass
+                    else:
+                        # Sin filtro: comportamiento original
+                        if enemies_now:
+                            print("[Cavebot] Enemigos detectados en ruta. Combatiendo…")
+                            engage_until_no_creatures()
+                            if HK_LOOT:
+                                print("[Loot] Ejecutando loot…")
+                                _do_loot()
+                                _pelar_maybe("after_kill")
+                            time.sleep(0.10)
 
                 pt = find_center(target_img, search_region, CONFIDENCE)
 
@@ -1589,6 +1874,8 @@ def main():
                     if HK_LOOT:
                         print("[Loot] Ejecutando loot…")
                         _do_loot()
+                         # --- NUEVO: 'post_clear' ---
+                        _pelar_maybe("post_clear")
                 else:
                     print("[Creature] Acción es 'lure' o 'ignore': no se revisa criatura ni se hace loot.")
 
@@ -1655,8 +1942,15 @@ def main():
                     print(f"[Cavebot] Prime loop {TARGET_PRIME_TIMEOUT_S:.1f}s con HK_TARGET…")
                     while time.monotonic() < prime_deadline and not is_paused() and _is_tibia_active():
                         now = time.monotonic()
-                        if HK_TARGET and (now - last_prime_ts) >= TARGET_RETRY_SLEEP:
-                            keyboard.press_and_release(HK_TARGET)
+                        if (now - last_prime_ts) >= TARGET_RETRY_SLEEP:
+                            if _specific_filter_active():
+                                # Si ya no hay objetivo válido → salir del prime loop y continuar ruta
+                                if _specific_should_abort_engage():
+                                    print("[Specific] Prime loop: sin objetivos válidos → continuar ruta.")
+                                    break
+                                _specific_click_target_once()
+                            elif HK_TARGET:
+                                keyboard.press_and_release(HK_TARGET)
                             last_prime_ts = now
                         if battlelist_maybe_has_enemies():
                             print("[Cavebot] Enemigos durante prime → combate…")

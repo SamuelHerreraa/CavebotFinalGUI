@@ -88,7 +88,7 @@ def main():
     # --- Ventana principal ---
     win = MainWindow(controller)
     # Tamaño compacto (aprox. mitad de 1366x768)
-    win.resize(810, 475)
+    win.resize(810, 630)
     win.setMinimumSize(640, 380)
     win.show()
 

@@ -19,9 +19,9 @@
   ],
   "BATTLELIST_RECT_X1Y1X2Y2": [
     1566,
-    77,
-    1604,
-    112
+    78,
+    1606,
+    321
   ],
   "EXIT_REGION_HEALTH_X1Y1X2Y2": [
     915,
@@ -104,11 +104,11 @@
   "HK_HIGH_HEALING": "f3",
   "HK_LOW_HEALING": "f5",
   "HK_MANA_POTION": "f6",
-  "HK_EXORI_GRAN": "1",
-  "HK_EXORI": "2",
-  "HK_EXORI_MAS": "3",
-  "HK_EXORI_HUR": "",
-  "HK_EXORI_ICO": "",
+  "HK_EXORI_GRAN": "",
+  "HK_EXORI": "",
+  "HK_EXORI_MAS": "",
+  "HK_EXORI_HUR": "7",
+  "HK_EXORI_ICO": "6",
   "HK_EXETARES": "f1",
   "HK_BOOST": "",
   "HK_EXETAAMPRES": "",
@@ -124,25 +124,9 @@
       "ROUTE": [
         "wp1",
         "wp2",
-        "wp3",
-        "wp13",
-        "wp4",
-        "wp5",
-        "wp6",
-        "wp7",
-        "wp8",
-        "wp9",
-        "wp10"
+        "wp3"
       ],
       "ROUTE_ACTIONS": [
-        "none",
-        "lure",
-        "none",
-        "none",
-        "none",
-        "none",
-        "none",
-        "none",
         "none",
         "none",
         "none"
@@ -150,25 +134,9 @@
       "ROUTE_LABELS": [
         "",
         "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
         ""
       ],
       "ROUTE_GOTO": [
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
         "",
         "",
         ""
@@ -178,25 +146,9 @@
   "ROUTE": [
     "wp1",
     "wp2",
-    "wp3",
-    "wp13",
-    "wp4",
-    "wp5",
-    "wp6",
-    "wp7",
-    "wp8",
-    "wp9",
-    "wp10"
+    "wp3"
   ],
   "ROUTE_ACTIONS": [
-    "none",
-    "lure",
-    "none",
-    "none",
-    "none",
-    "none",
-    "none",
-    "none",
     "none",
     "none",
     "none"
@@ -204,25 +156,9 @@
   "ROUTE_LABELS": [
     "",
     "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
     ""
   ],
   "ROUTE_GOTO": [
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
     "",
     "",
     ""
@@ -237,11 +173,11 @@
   "SLEEP_AFTER_CLICK": 0.05,
   "ATTACK_UNTIL_ARRIVED_MODE": "x",
   "LOOT_AFTER_KILL_MODE": "x",
-  "IGNORE_CREATURES_AT_MOST": "1",
+  "IGNORE_CREATURES_AT_MOST": "",
   "exit_when_no_pots": "",
   "CHECK_MANA_ON": "",
   "CHECK_HEALTH_ON": "",
-  "dropvials": "x",
+  "dropvials": "",
   "POTION_CHECK_MANA_IMG": "smp.png",
   "POTION_CHECK_HEALTH_IMG": "hp.png",
   "USE_EXORI_MIN_PLUS": "1+",
@@ -251,9 +187,7 @@
   "USE_EXORICO_MIN_PLUS": "1+",
   "SPELL_ROTATION_START_DELAY": 1.5,
   "SPELL_ROTATION_COOLDOWN": 2.0,
-  "SUPPORT_ROTATION": [
-    "res"
-  ],
+  "SUPPORT_ROTATION": [],
   "SUPPORT_COOLDOWN": 2.0,
   "SUPPORT_START_DELAY": 1.0,
   "CREATURE_DEAD_CHECK_RGB": [
@@ -274,17 +208,27 @@
   "TRAINING_ML_HOTKEY": "f3",
   "TRAINING_ML_POS": [
     1852,
-    323
+    322
   ],
   "TRAINING_ML_RGB": [
     115,
     112,
     254
   ],
+  "PELAR_ENABLED": "",
+  "PELAR_HOTKEY": "f12",
+  "HK_PELAR": "f12",
+  "PELAR_MODE": "after_kill",
+  "ATTACK_SPECIFIC_CREATURE_ENABLED": "",
+  "SPECIFIC_CREATURE_REGION_X1Y1X2Y2": [
+    1563,
+    71,
+    1606,
+    310
+  ],
+  "ATTACK_SPECIFIC_CREATURES": [],
   "ROUTE_ATTACH": {
     "tab": "hunt",
     "index": 0
-  },
-  "PELAR_ENABLED": "",
-  "PELAR_HOTKEY": "H"
+  }
 }
