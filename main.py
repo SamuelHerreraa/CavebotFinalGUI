@@ -265,7 +265,7 @@ PARALYZE_PRESS_COOLDOWN = 0.70
 # ========================= ZOOM ============================
 ZOOM_RECT_X1Y1X2Y2 = (0, 0, 0, 0)
 ZOOM_CONFIDENCE    = 0.99
-ZOOM_CLICK_DELAY   = 0.5
+ZOOM_CLICK_DELAY   = 1.5
 
 # ======================== RETRY LOGIC ======================
 RETRY_SAME_WP_ONLY_IF_COMBAT = True

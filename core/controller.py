@@ -3,22 +3,16 @@ from __future__ import annotations
 from pathlib import Path
 import json
 import os
-import sys
 import subprocess
-import threading
-import shutil
-import io
-import time
 from typing import Dict, Any, List, Tuple, Optional
-
+import sys
 
 class Controller:
     """
     Orquestador de la GUI:
     - Gestiona perfil activo
-    - Lanza main.py (subproceso en dev / hilo in-process en PyInstaller)
+    - Lanza main.py con un runtime_cfg.py generado desde el perfil
     - Modela estado (running/paused/threads) para los LEDs
-    - Redirige logs del engine a la pestaña Logs
     """
 
     def __init__(self, base_dir: Optional[Path] = None):
@@ -43,16 +37,7 @@ class Controller:
         }
 
         self._last_profile_file = self.base_dir / "profiles" / "_last_profile.txt"
-
-        # Subproceso (modo dev)
         self._child: Optional[subprocess.Popen] = None
-
-        # In-process (modo PyInstaller)
-        self._engine_thread: Optional[threading.Thread] = None
-        self._inprocess: bool = False
-        self._orig_stdout = None
-        self._orig_stderr = None
-
         self._ensure_dirs()
 
     # ---------------------- utils base ----------------------
@@ -125,6 +110,7 @@ class Controller:
         Normaliza claves conocidas de minúsculas -> MAYÚSCULAS para que main.py las lea.
         Si existen ambas variantes, la minúscula sobreescribe a la MAYÚSCULA.
         """
+        # Mapa de normalización para opciones de ruta
         keymap = {
             "wait_after_arrival_s": "WAIT_AFTER_ARRIVAL_S",
             "wait_before_next_wp_s": "WAIT_BEFORE_NEXT_WP_S",
@@ -135,11 +121,13 @@ class Controller:
             "sleep_after_click": "SLEEP_AFTER_CLICK",
         }
 
+        # 1) Copiamos y normalizamos claves
         normalized: Dict[str, Any] = {}
         for k, v in prof.items():
-            nk = keymap.get(k, k)
-            normalized[nk] = v
+            nk = keymap.get(k, k)  # si es minúscula conocida -> a MAYÚSCULA
+            normalized[nk] = v     # si luego aparece la minúscula, pisa a la mayúscula previa
 
+        # 2) Escribimos el archivo
         dst = self.base_dir / "runtime_cfg.py"
         lines: list[str] = [
             "# === Archivo auto-generado por la GUI ===",
@@ -147,10 +135,12 @@ class Controller:
             "",
         ]
 
+        # Orden estable (solo cosmético)
         for k in sorted(normalized.keys()):
             try:
                 lines.append(f"{k} = {repr(normalized[k])}")
             except Exception:
+                # último recurso, stringify
                 lines.append(f"{k} = {repr(str(normalized[k]))}")
 
         content = "\n".join(lines) + "\n"
@@ -159,23 +149,26 @@ class Controller:
         self.log(f"[Controller] runtime_cfg.py escrito ({dst}).")
         return dst
 
-    # ---------- DEV: subproceso con python -u ----------
-    def _spawn_subprocess(self) -> None:
+    def _spawn_main(self) -> None:
+        """
+        Lanza main.py sin búfer (-u + PYTHONUNBUFFERED) para que los prints lleguen
+        a la GUI al instante. Además forzamos UTF-8.
+        """
         try:
             if self._child and self._child.poll() is None:
                 return
         except Exception:
             pass
 
-        py = os.environ.get("PYTHON_EXE") or shutil.which("python") or sys.executable or "python"
+        py = os.environ.get("PYTHON_EXE") or sys.executable or "python"
         main_py = str(self.base_dir / "main.py")
         env = dict(os.environ)
         env["PYTHONUTF8"] = "1"
         env["PYTHONIOENCODING"] = "utf-8"
-        env["PYTHONUNBUFFERED"] = "1"
+        env["PYTHONUNBUFFERED"] = "1"  # <- clave
 
         self._child = subprocess.Popen(
-            [py, "-u", main_py],
+            [py, "-u", main_py],               # <- -u clave
             cwd=str(self.base_dir),
             text=True,
             encoding="utf-8",
@@ -183,105 +176,21 @@ class Controller:
             env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            bufsize=1,
+            bufsize=1,                         # intenta line-buffering
         )
 
+        import threading
         def _tail():
             try:
                 for line in self._child.stdout:
                     if not line:
                         break
-                    self.log(line.rstrip("\r\n"))
+                    self.log(line.rstrip("\n\r"))
             except Exception as e:
                 self.log(f"[Controller] tail error: {e}")
 
         threading.Thread(target=_tail, daemon=True).start()
-        self.log("[Controller] main.py lanzado (subproceso). Arranca en PAUSA SUAVE.")
-
-    # ---------- FROZEN: in-process (hilo) con redirección de stdout/stderr ----------
-    class _StreamToLog(io.TextIOBase):
-        def __init__(self, emit_fn):
-            super().__init__()
-            self._emit = emit_fn
-            self._buf = ""
-            self.encoding = "utf-8"
-
-        def write(self, s):
-            if not s:
-                return 0
-            if not isinstance(s, str):
-                try:
-                    s = s.decode("utf-8", "replace")
-                except Exception:
-                    s = str(s)
-            self._buf += s
-            while "\n" in self._buf:
-                line, self._buf = self._buf.split("\n", 1)
-                self._emit(line.rstrip("\r"))
-            return len(s)
-
-        def flush(self):
-            if self._buf:
-                self._emit(self._buf.rstrip("\r"))
-                self._buf = ""
-
-    def _spawn_inprocess(self) -> None:
-        if self._engine_thread and self._engine_thread.is_alive():
-            return
-
-        # Asegura CWD = base_dir (para rutas relativas del engine)
-        try:
-            os.chdir(str(self.base_dir))
-        except Exception:
-            pass
-
-        self._inprocess = True
-
-        def _runner():
-            # Redirigir stdout/stderr a la pestaña Logs
-            self._orig_stdout, self._orig_stderr = sys.stdout, sys.stderr
-            out = Controller._StreamToLog(self.log)
-            err = Controller._StreamToLog(self.log)
-            sys.stdout, sys.stderr = out, err
-            try:
-                from main import main as engine_main
-                engine_main()
-            except SystemExit:
-                pass
-            except Exception as e:
-                import traceback
-                tb = traceback.format_exc()
-                self.log(f"[Controller] Error en engine: {e}\n{tb}")
-            finally:
-                # Vaciar buffers pendientes
-                try:
-                    out.flush()
-                    err.flush()
-                except Exception:
-                    pass
-                # Restaurar stdout/err
-                try:
-                    sys.stdout = self._orig_stdout
-                    sys.stderr = self._orig_stderr
-                except Exception:
-                    pass
-                self._inprocess = False
-
-        t = threading.Thread(target=_runner, daemon=True)
-        t.start()
-        self._engine_thread = t
-        self.log("[Controller] main.py lanzado (in-process hilo). Arranca en PAUSA SUAVE.")
-
-    def _spawn_main(self) -> None:
-        """
-        Lanza el engine según el entorno:
-        - PyInstaller (sys.frozen)  -> hilo in-process (sin relanzar el .exe)
-        - Desarrollo (no frozen)    -> subproceso con 'python -u main.py'
-        """
-        if getattr(sys, "frozen", False):
-            self._spawn_inprocess()
-        else:
-            self._spawn_subprocess()
+        self.log("[Controller] main.py lanzado. Arranca en PAUSA SUAVE.")
 
     # ---------------------- run/pausa/stop ----------------------
     def start(self, profile: Dict[str, Any]) -> Tuple[bool, str]:
@@ -316,6 +225,7 @@ class Controller:
             if not skip_write:
                 self._write_runtime_cfg(self.active_profile)
             else:
+                # Consumir el flag (solo salta una vez)
                 try:
                     delattr(self, "_skip_runtime_write")
                 except Exception:
@@ -324,7 +234,7 @@ class Controller:
                     except Exception:
                         pass
 
-            # 2) lanzar main.py según entorno
+            # 2) lanzar main.py con UTF-8
             self._spawn_main()
 
             self.log("[Controller] Start: RUN (paused=TRUE). Presiona HOME para correr cavebot.")
@@ -350,31 +260,22 @@ class Controller:
         self.state["paused"]  = False
         self.state["threads"] = {k: False for k in self.state["threads"].keys()}
 
-        # Terminar el main si sigue vivo (dev/subproceso)
+        # Terminar el main si sigue vivo
         try:
             if self._child and self._child.poll() is None:
                 self._child.terminate()
         except Exception:
             pass
 
-        # Parar in-process (PyInstaller) señalando el _STOP_EVENT del engine
-        if self._inprocess and self._engine_thread and self._engine_thread.is_alive():
-            try:
-                import main as _main_mod
-                if hasattr(_main_mod, "_STOP_EVENT"):
-                    _main_mod._STOP_EVENT.set()
-                # darle un tiempito a que salga limpio
-                for _ in range(20):
-                    if not self._engine_thread.is_alive():
-                        break
-                    time.sleep(0.1)
-            except Exception:
-                pass
-
-        # No reescribimos runtime_cfg.py aquí
+        # IMPORTANTE:
+        # No volvemos a escribir runtime_cfg.py aquí para NO pisar
+        # los valores de opciones de ruta guardados con Ctrl+S.
+        # Solo limpiamos el attach en memoria para que el próximo start
+        # arranque desde el inicio si el usuario no adjunta una fila.
         try:
             if isinstance(self.active_profile, dict):
                 self.active_profile.pop("ROUTE_ATTACH", None)
+                # ¡OJO! No llamar a _write_runtime_cfg aquí.
         except Exception:
             pass
 
